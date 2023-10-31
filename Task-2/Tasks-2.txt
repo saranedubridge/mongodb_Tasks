@@ -1,0 +1,1130 @@
+Tasks-2
+
+1. Find all the topics and tasks which are thought in the month of October?
+
+db.topics.aggregate([
+  {
+    $lookup: {
+      from: "tasks",
+      localField: "date",
+      foreignField: "date",
+      as: "tasks_data"
+    }
+  },
+  {
+    $match: {
+      date: {
+        $gte: "2020-10-01",
+        $lte: "2020-10-31"
+      }
+    }
+  },
+  {
+$unwind:"$tasks_data"
+},
+  {
+$project:{
+_id:0,
+topic:1,
+tasks:"$tasks_data.tasks",
+date:"$tasks_data.date"
+}
+}
+])
+{
+  topic: 'React-Day-1: ES5 vs ES6',
+  tasks: ' ES5 vs ES6',
+  date: '2020-10-08'
+}
+{
+  topic: 'React-Day-2: React',
+  tasks: 'React',
+  date: '2020-10-09'
+}
+{
+  topic: 'React-Day-3: React hooks & states',
+  tasks: ' React hooks & states',
+  date: '2020-10-13'
+}
+{
+  topic: 'React-Day-4: React components',
+  tasks: ' React components',
+  date: '2020-10-14'
+}
+{
+  topic: 'React-Day-4: React components',
+  tasks: ' React hooks',
+  date: '2020-10-14'
+}
+{
+  topic: 'React-Day-5: React hooks',
+  tasks: ' React components',
+  date: '2020-10-14'
+}
+{
+  topic: 'React-Day-5: React hooks',
+  tasks: ' React hooks',
+  date: '2020-10-14'
+}
+{
+  topic: 'React-Day-6: React router',
+  tasks: ' React router',
+  date: '2020-10-16'
+}
+{
+  topic: 'React-Day-7: React session practice',
+  tasks: ' React session practice',
+  date: '2020-10-20'
+}
+{
+  topic: 'React-Day-8: Context API',
+  tasks: ' Context API',
+  date: '2020-10-21'
+}
+{
+  topic: 'React-Day-9: Hook-useRef, useReducer',
+  tasks: 'Hook-useRef, useReducer',
+  date: '2020-10-22'
+}
+{
+  topic: 'React-Day-10: React with CRUD',
+  tasks: ' React with CRUD',
+  date: '2020-10-23'
+}
+
+
+******************************************************************************************************************************************
+
+2. Find all the company drives which appeared between 15 oct-2020 and 31-oct-2020?
+
+db.company_drives.find({
+$and:
+[
+{date:{$gte:"2020-10-15"}},
+{date:{$lte:"2020-10-31"}}
+]
+},
+{_id:0,name:1,date:1})
+
+
+
+
+{
+  name: 'Intel Technology India Pvt. Ltd',
+  date: '2020-10-15T10:00:00.000Z'
+}
+{
+  name: 'Cisco Systems India Pvt. Ltd',
+  date: '2020-10-17T10:00:00.000Z'
+}
+{
+  name: 'Patni Computer Systems Ltd',
+  date: '2020-10-19T10:00:00.000Z'
+}
+{
+  name: 'Cognizant Technology Solutions India',
+  date: '2020-10-21T10:00:00.000Z'
+}
+{
+  name: 'HCL Infosystems Ltd',
+  date: '2020-10-23T10:00:00.000Z'
+}
+{
+  name: 'Mahindra-British Telecom',
+  date: '2020-10-25T10:00:00.000Z'
+}
+{
+  name: 'Redington (India) Limited',
+  date: '2020-10-27T10:00:00.000Z'
+}
+{
+  name: 'i-Flex Solutions Ltd',
+  date: '2020-10-29T10:00:00.000Z'
+}
+
+
+***************************************************************************************************************************************
+3. Find all the company drives and students who are appeared for the placement.?
+
+
+db.drives_attendance.aggregate([
+  {
+    $lookup: {
+      from: "company_drives",
+      localField: "company_id",
+      foreignField: "_id",
+      as: "company"
+    }
+  },
+  {
+    $unwind: "$attendance"
+  },
+  {
+    $lookup: {
+      from: "users",
+      localField: "attendance.student_id",
+      foreignField: "_id",
+      as: "student_attendance"
+    }
+  },
+  {
+    $unwind: "$company"
+  },
+  {
+    $unwind: "$student_attendance"
+  },
+  {
+    $project: {
+      _id: 0,
+      company_name: "$company.name",
+      drive_date: "$company.date",
+      student_name: "$student_attendance.name",
+      attendance_status: "$attendance.drive_status"
+    }
+  },
+  {
+    $match: {
+      attendance_status: "present"
+    }
+  },
+  {
+    $group: {
+      _id: {
+        company_name: "$company_name",
+        drive_date: "$drive_date"
+      },
+      students_List: { $push: "$student_name" },
+      total_students: { $sum: 1 }
+    }
+  },
+  {
+    $project: {
+      _id: 0,
+      company_name: "$_id.company_name",
+      drive_date: "$_id.drive_date",
+      total_students: 1,
+      students_List: 1
+    }
+  }
+])
+{
+  students_List: [
+    'Amelia Murphy',
+    'Oliver Ward',
+    'Olivia Martinez',
+    'Mia Hall',
+    'Mia Mitchell',
+    'Sophia Foster',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Ava Lopez',
+    'Noah Wright',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Michael Green',
+    'Oliver Collins'
+  ],
+  total_students: 17,
+  company_name: 'Mahindra-British Telecom',
+  drive_date: '2020-10-25T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Hall',
+    'Mia Mitchell',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Benjamin Nelson',
+    'Evelyn Cook',
+    'Liam Adams',
+    'James Bell',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'James Reed'
+  ],
+  total_students: 17,
+  company_name: 'HCL Technologies Ltd',
+  drive_date: '2020-10-13T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Alexander White',
+    'Amelia Murphy',
+    'Ethan Gray',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Olivia Martinez',
+    'Mia Hall',
+    'Mia Mitchell',
+    'Sophia Foster',
+    'Amelia Hill',
+    'David Hernandez',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Evelyn Cook',
+    'Liam Adams',
+    'Ava Lopez',
+    'Noah Wright',
+    'James Bell',
+    'Ethan Moore',
+    'Sophia Lewis',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Michael Green',
+    'Olivia Adams',
+    'Oliver Collins',
+    'Noah Scott',
+    'James Reed'
+  ],
+  total_students: 30,
+  company_name: 'Infosys Technologies Ltd',
+  drive_date: '2020-10-03T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Alexander White',
+    'Amelia Murphy',
+    'Ethan Gray',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Olivia Martinez',
+    'Mia Hall',
+    'Mia Mitchell',
+    'Sophia Foster',
+    'Amelia Hill',
+    'David Hernandez',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Evelyn Cook',
+    'Liam Adams',
+    'Ava Lopez',
+    'Noah Wright',
+    'James Bell',
+    'Ethan Moore',
+    'Sophia Lewis',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Michael Green',
+    'Olivia Adams',
+    'Oliver Collins',
+    'Noah Scott',
+    'James Reed'
+  ],
+  total_students: 30,
+  company_name: 'Wipro Limited',
+  drive_date: '2020-10-05T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Mitchell',
+    'Sophia Foster',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Noah Wright',
+    'Sophia Lewis',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Noah Scott'
+  ],
+  total_students: 16,
+  company_name: 'Oracle India Pvt. Ltd',
+  drive_date: '2020-10-31T10:00:00.000Z'
+}
+{
+  students_List: [
+    'Alexander White',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Mitchell',
+    'Amelia Hill',
+    'David Hernandez',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Noah Wright',
+    'James Bell',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins',
+    'James Reed'
+  ],
+  total_students: 16,
+  company_name: 'Moser Baer India Ltd',
+  drive_date: '2020-11-02T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Amelia Murphy',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Hall',
+    'Sophia Foster',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Isabella Clark',
+    'Evelyn Cook',
+    'Ava Lopez',
+    'James Bell',
+    'Sophia Lewis',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'James Reed'
+  ],
+  total_students: 18,
+  company_name: 'IBM India Limited',
+  drive_date: '2020-10-09T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Mitchell',
+    'Sophia Foster',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Noah Wright',
+    'Sophia Lewis',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Noah Scott'
+  ],
+  total_students: 16,
+  company_name: 'i-Flex Solutions Ltd',
+  drive_date: '2020-10-29T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Emma Taylor',
+    'Mia Hall',
+    'Amelia Hill',
+    'David Hernandez',
+    'Lucas Rivera',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Noah Wright',
+    'James Bell',
+    'Sophia Lewis',
+    'Michael Green',
+    'Olivia Adams',
+    'Oliver Collins',
+    'James Reed'
+  ],
+  total_students: 17,
+  company_name: 'iGATE Global Solutions Ltd',
+  drive_date: '2020-11-10T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Alexander White',
+    'Amelia Murphy',
+    'Ethan Gray',
+    'Oliver Ward',
+    'Mia Hall',
+    'Mia Mitchell',
+    'Sophia Foster',
+    'Amelia Hill',
+    'David Hernandez',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Isabella Clark',
+    'Evelyn Cook',
+    'Liam Adams',
+    'Ava Lopez',
+    'Noah Wright',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins',
+    'Noah Scott',
+    'James Reed'
+  ],
+  total_students: 24,
+  company_name: 'Tata Consultancy Services (TCS)',
+  drive_date: '2020-10-01T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Emma Taylor',
+    'Olivia Martinez',
+    'Mia Mitchell',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Isabella Clark',
+    'Liam Adams',
+    'Ava Lopez',
+    'Noah Wright',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins'
+  ],
+  total_students: 17,
+  company_name: 'Intel Technology India Pvt. Ltd',
+  drive_date: '2020-10-15T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Emma Taylor',
+    'Mia Hall',
+    'Amelia Hill',
+    'David Hernandez',
+    'Lucas Rivera',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Noah Wright',
+    'James Bell',
+    'Sophia Lewis',
+    'Michael Green',
+    'Olivia Adams',
+    'Oliver Collins',
+    'James Reed'
+  ],
+  total_students: 17,
+  company_name: 'Ingram Micro India (P) Ltd',
+  drive_date: '2020-11-12T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Emma Taylor',
+    'Olivia Martinez',
+    'Mia Mitchell',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Isabella Clark',
+    'Liam Adams',
+    'Ava Lopez',
+    'Noah Wright',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins'
+  ],
+  total_students: 17,
+  company_name: 'Cisco Systems India Pvt. Ltd',
+  drive_date: '2020-10-17T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Amelia Murphy',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Hall',
+    'Sophia Foster',
+    'Amelia Hill',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Noah Wright',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins',
+    'James Reed'
+  ],
+  total_students: 18,
+  company_name: 'Cognizant Technology Solutions India',
+  drive_date: '2020-10-21T10:00:00.000Z'
+}
+{
+  students_List: [
+    'Alexander White',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Mitchell',
+    'Amelia Hill',
+    'David Hernandez',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Noah Wright',
+    'James Bell',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins',
+    'James Reed'
+  ],
+  total_students: 16,
+  company_name: 'Microsoft Corporation (India) Pvt. Ltd',
+  drive_date: '2020-11-04T10:00:00.000Z'
+}
+{
+  students_List: [
+    'Amelia Murphy',
+    'Oliver Ward',
+    'Olivia Martinez',
+    'Mia Hall',
+    'Mia Mitchell',
+    'Sophia Foster',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Ava Lopez',
+    'Noah Wright',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Michael Green',
+    'Oliver Collins'
+  ],
+  total_students: 17,
+  company_name: 'Redington (India) Limited',
+  drive_date: '2020-10-27T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Amelia Murphy',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Hall',
+    'Sophia Foster',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Henry Hughes',
+    'Isabella Clark',
+    'Evelyn Cook',
+    'Ava Lopez',
+    'James Bell',
+    'Sophia Lewis',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'James Reed'
+  ],
+  total_students: 18,
+  company_name: 'Hewlett-Packard India Pvt. Ltd',
+  drive_date: '2020-10-07T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Ethan Gray',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Hall',
+    'Mia Mitchell',
+    'Amelia Hill',
+    'Lucas Rivera',
+    'Benjamin Nelson',
+    'Evelyn Cook',
+    'Liam Adams',
+    'James Bell',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'James Reed'
+  ],
+  total_students: 17,
+  company_name: 'Satyam Computer Services Ltd.',
+  drive_date: '2020-10-11T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Amelia Murphy',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Hall',
+    'Sophia Foster',
+    'Amelia Hill',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Noah Wright',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins',
+    'James Reed'
+  ],
+  total_students: 18,
+  company_name: 'Patni Computer Systems Ltd',
+  drive_date: '2020-10-19T10:00:00.000Z'
+}
+{
+  students_List: [
+    'James Anderson',
+    'Amelia Murphy',
+    'Oliver Ward',
+    'Emma Taylor',
+    'Mia Hall',
+    'Sophia Foster',
+    'Amelia Hill',
+    'Henry Hughes',
+    'Benjamin Nelson',
+    'Isabella Clark',
+    'Liam Adams',
+    'Noah Wright',
+    'Ethan Moore',
+    'Benjamin Cox',
+    'Daniel Gonzalez',
+    'Olivia Adams',
+    'Oliver Collins',
+    'James Reed'
+  ],
+  total_students: 18,
+  company_name: 'HCL Infosystems Ltd',
+  drive_date: '2020-10-23T10:00:00.000Z'
+}
+
+**************************************************************************************************************************************************************************
+
+4.Find the number of problems solved by the user in codekata?
+
+db.users.aggregate([
+  {
+$lookup:
+{
+from:"codeketa",
+localField:"codeketa",
+foreignField:"codeketa",
+as:"codeketa_problem"
+}
+},
+  {
+$unwind:"$codeketa_problem"
+},
+  {
+$project:{
+_id:0,
+user_name:"$name",
+Solved_problems:"$cokeketa_problems_solved",
+Total_problems:"$codeketa_problem.Total_problems"
+
+}
+}
+])
+{
+  user_name: 'John Doe',
+  Solved_problems: 53,
+  Total_problems: 100
+}
+{
+  user_name: 'Alice Smith',
+  Solved_problems: 70,
+  Total_problems: 100
+}
+{
+  user_name: 'Bob Johnson',
+  Solved_problems: 45,
+  Total_problems: 100
+}
+{
+  user_name: 'Emily Brown',
+  Solved_problems: 82,
+  Total_problems: 100
+}
+{
+  user_name: 'Michael Wilson',
+  Solved_problems: 67,
+  Total_problems: 100
+}
+{
+  user_name: 'Sophia Lee',
+  Solved_problems: 59,
+  Total_problems: 100
+}
+{
+  user_name: 'William Davis',
+  Solved_problems: 96,
+  Total_problems: 100
+}
+{
+  user_name: 'Olivia Martinez',
+  Solved_problems: 40,
+  Total_problems: 100
+}
+{
+  user_name: 'James Anderson',
+  Solved_problems: 68,
+  Total_problems: 100
+}
+{
+  user_name: 'Emma Taylor',
+  Solved_problems: 79,
+  Total_problems: 100
+}
+{
+  user_name: 'David Hernandez',
+  Solved_problems: 55,
+  Total_problems: 100
+}
+{
+  user_name: 'Ava Lopez',
+  Solved_problems: 76,
+  Total_problems: 100
+}
+{
+  user_name: 'Daniel Gonzalez',
+  Solved_problems: 61,
+  Total_problems: 100
+}
+{
+  user_name: 'Sophia Lewis',
+  Solved_problems: 46,
+  Total_problems: 100
+}
+{
+  user_name: 'Alexander White',
+  Solved_problems: 88,
+  Total_problems: 100
+}
+{
+  user_name: 'Olivia Walker',
+  Solved_problems: 90,
+  Total_problems: 100
+}
+{
+  user_name: 'Ethan Moore',
+  Solved_problems: 64,
+  Total_problems: 100
+}
+{
+  user_name: 'Isabella Clark',
+  Solved_problems: 51,
+  Total_problems: 100
+}
+{
+  user_name: 'Mia Hall',
+  Solved_problems: 73,
+  Total_problems: 100
+}
+{
+  user_name: 'Michael Green',
+  Solved_problems: 35,
+  Total_problems: 100
+}
+Type "it" for more
+it
+{
+  user_name: 'Liam Adams',
+  Solved_problems: 41,
+  Total_problems: 100
+}
+{
+  user_name: 'Abigail Parker',
+  Solved_problems: 34,
+  Total_problems: 100
+}
+{
+  user_name: 'Noah Scott',
+  Solved_problems: 50,
+  Total_problems: 100
+}
+{
+  user_name: 'Charlotte King',
+  Solved_problems: 66,
+  Total_problems: 100
+}
+{
+  user_name: 'Harper Turner',
+  Solved_problems: 85,
+  Total_problems: 100
+}
+{
+  user_name: 'William Baker',
+  Solved_problems: 42,
+  Total_problems: 100
+}
+{
+  user_name: 'Evelyn Cook',
+  Solved_problems: 80,
+  Total_problems: 100
+}
+{
+  user_name: 'Benjamin Nelson',
+  Solved_problems: 37,
+  Total_problems: 100
+}
+{
+  user_name: 'Amelia Hill',
+  Solved_problems: 76,
+  Total_problems: 100
+}
+{
+  user_name: 'Lucas Rivera',
+  Solved_problems: 54,
+  Total_problems: 100
+}
+{
+  user_name: 'Mia Mitchell',
+  Solved_problems: 48,
+  Total_problems: 100
+}
+{
+  user_name: 'Henry Hall',
+  Solved_problems: 89,
+  Total_problems: 100
+}
+{
+  user_name: 'Ava Hughes',
+  Solved_problems: 93,
+  Total_problems: 100
+}
+{
+  user_name: 'Oliver Ward',
+  Solved_problems: 94,
+  Total_problems: 100
+}
+{
+  user_name: 'Sophia Stewart',
+  Solved_problems: 56,
+  Total_problems: 100
+}
+{
+  user_name: 'Elijah Perry',
+  Solved_problems: 69,
+  Total_problems: 100
+}
+{
+  user_name: 'Amelia Murphy',
+  Solved_problems: 32,
+  Total_problems: 100
+}
+{
+  user_name: 'James Bell',
+  Solved_problems: 39,
+  Total_problems: 100
+}
+{
+  user_name: 'Olivia Adams',
+  Solved_problems: 63,
+  Total_problems: 100
+}
+{
+  user_name: 'Liam Lewis',
+  Solved_problems: 75,
+  Total_problems: 100
+}
+Type "it" for more
+it
+{
+  user_name: 'Sophia Foster',
+  Solved_problems: 33,
+  Total_problems: 100
+}
+{
+  user_name: 'Jackson Brooks',
+  Solved_problems: 71,
+  Total_problems: 100
+}
+{
+  user_name: 'Emma Harris',
+  Solved_problems: 77,
+  Total_problems: 100
+}
+{
+  user_name: 'William Simmons',
+  Solved_problems: 84,
+  Total_problems: 100
+}
+{
+  user_name: 'Oliver Collins',
+  Solved_problems: 58,
+  Total_problems: 100
+}
+{
+  user_name: 'Charlotte Powell',
+  Solved_problems: 43,
+  Total_problems: 100
+}
+{
+  user_name: 'Ethan Gray',
+  Solved_problems: 38,
+  Total_problems: 100
+}
+{
+  user_name: 'Mia Rogers',
+  Solved_problems: 65,
+  Total_problems: 100
+}
+{
+  user_name: 'Benjamin Cox',
+  Solved_problems: 71,
+  Total_problems: 100
+}
+{
+  user_name: 'Harper Price',
+  Solved_problems: 63,
+  Total_problems: 100
+}
+{
+  user_name: 'Lucas Turner',
+  Solved_problems: 89,
+  Total_problems: 100
+}
+{
+  user_name: 'Sophia Griffin',
+  Solved_problems: 56,
+  Total_problems: 100
+}
+{
+  user_name: 'Evelyn Brooks',
+  Solved_problems: 75,
+  Total_problems: 100
+}
+{
+  user_name: 'Henry Hughes',
+  Solved_problems: 42,
+  Total_problems: 100
+}
+{
+  user_name: 'Amelia Russell',
+  Solved_problems: 69,
+  Total_problems: 100
+}
+{
+  user_name: 'Liam Foster',
+  Solved_problems: 88,
+  Total_problems: 100
+}
+{
+  user_name: 'Noah Wright',
+  Solved_problems: 44,
+  Total_problems: 100
+}
+{
+  user_name: 'Ava Scott',
+  Solved_problems: 91,
+  Total_problems: 100
+}
+{
+  user_name: 'Sophia Carter',
+  Solved_problems: 57,
+  Total_problems: 100
+}
+{
+  user_name: 'James Reed',
+  Solved_problems: 36,
+  Total_problems: 100
+}
+
+****************************************************************************************************************************************
+
+5.Find all the mentors with who has the mentee's count more than 15?
+
+db.mentors.find({ "mentee's_count": { $gt: 15 } },{_id:0});
+{
+  Mentor_Name: 'Liam Johnson',
+  "mentee's_count": 16
+}
+{
+  Mentor_Name: 'Noah Wilson',
+  "mentee's_count": 17
+}
+
+
+****************************************************************************************************************************************
+
+6.Find the number of users who are absent and task is not submitted  between 15 oct-2020 and 31-oct-2020?
+
+
+
+db.attendance.aggregate([
+  {
+    $match: {
+      date: {
+        $gte: "2020-10-15",
+        $lte: "2020-10-31"
+      }
+    }
+  },
+  {
+    $unwind: "$attendance"
+  },
+  {
+    $match: {
+      "attendance.class_status": "absent",
+      "attendance.task_status": "not_submitted" 
+    }
+  },
+  {
+    $group: {
+      _id: "$date",
+      absent_and_not_submitted_users: { $sum: 1 }
+    }
+  },
+  {
+    $project: {
+      date: "$_id", 
+      _id: 0, 
+      absent_and_not_submitted_users: 1
+    }
+  }
+])
+{
+  absent_and_not_submitted_users: 15,
+  date: '2020-10-23'
+}
+{
+  absent_and_not_submitted_users: 10,
+  date: '2020-10-16'
+}
+{
+  absent_and_not_submitted_users: 13,
+  date: '2020-10-21'
+}
+{
+  absent_and_not_submitted_users: 14,
+  date: '2020-10-20'
+}
+{
+  absent_and_not_submitted_users: 8,
+  date: '2020-10-22'
+}
+
